@@ -1,0 +1,42 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return request.auth != null && 
+        (request.auth.token.email == "masumganvir2006@gmail.com" || 
+         request.auth.token.email == "marathivloggerstudio@gmail.com" || 
+         request.auth.token.email == "masumganvir18@gmail.com");
+    }
+
+    // Orders Collection: Public can create, Admins can do everything
+    match /orders/{orderId} {
+      allow create: if true; 
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Media Collection: Public can read, Admins can write
+    match /service_media/{mediaId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Reviews Collection: Authenticated users can create/read, Admins can delete
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if isAdmin();
+    }
+
+    // Audit Logs: Admins only
+    match /audit_logs/{logId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Default: Deny all
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

@@ -13,6 +13,9 @@ const TEMPLATE_USER = "template_7h27vhv"; // ✅ Updated
 const TEMPLATE_ADMIN = "template_pfthjao"; // ✅ Updated
 const PUBLIC_KEY = "hMikfIKXEVIBIESMP";
 
+import { BackButton } from "@/components/BackButton";
+import { TechBackground } from "@/components/TechBackground";
+
 const ThankYou = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -88,6 +91,8 @@ const ThankYou = () => {
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center relative overflow-hidden text-white p-6">
+      <TechBackground />
+      <BackButton />
       {/* Background Ambience */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
 

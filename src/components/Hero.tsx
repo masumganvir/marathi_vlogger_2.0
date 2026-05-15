@@ -1,10 +1,21 @@
 import heroImg from "@/assets/hero-cinematic.jpg";
-import { ArrowDown, ArrowRight, Play } from "lucide-react";
+import { ArrowDown, ArrowRight, Play, Shield } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useUser } from "@clerk/clerk-react";
+
+const ADMIN_EMAILS = [
+  "masumganvir2006@gmail.com", 
+  "marathivloggerstudio@gmail.com", 
+  "masumganvir18@gmail.com"
+];
 
 const Hero = () => {
+  const { user } = useUser();
+  const isAdmin = user && ADMIN_EMAILS.includes(user.primaryEmailAddress?.emailAddress || "");
+
   return (
     <section id="home" className="relative min-h-screen w-full overflow-hidden flex items-center grain">
-      {/* Background image with slow zoom */}
+      {/* ... previous content ... */}
       <div className="absolute inset-0 z-0">
         <img
           src={heroImg}
@@ -72,22 +83,47 @@ const Hero = () => {
 
           {/* CTA Buttons — Premium, bold, irresistible */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 animate-fade-up" style={{ animationDelay: "1s" }}>
-            <button 
-              data-tally-open="9q6YJQ"
-              data-tally-layout="modal"
-              data-tally-width="700"
+            <Link 
+              to="/booking"
               className="btn-premium group cursor-pointer inline-flex"
             >
-              Book Now
+              Book Your Story
               <ArrowRight className="w-4 h-4 transition-transform duration-500 group-hover:translate-x-1" />
-            </button>
+            </Link>
 
-            <a href="#contact" className="btn-ghost group">
+            <a 
+              href="https://www.instagram.com/marathi_vloggerr_2?igsh=Z21haXV2ODFtbHF4" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-ghost group"
+            >
               <span className="w-11 h-11 rounded-full border border-primary/40 flex items-center justify-center group-hover:bg-primary/15 group-hover:border-primary transition-all duration-500">
                 <Play className="w-4 h-4 text-primary fill-primary ml-0.5" />
               </span>
               Watch Showreel
             </a>
+
+            <Link 
+              to="/introduction"
+              className="btn-ghost group"
+            >
+              <span className="w-11 h-11 rounded-full border border-primary/40 flex items-center justify-center group-hover:bg-primary/15 group-hover:border-primary transition-all duration-500">
+                <Play className="w-4 h-4 text-primary fill-primary ml-0.5" />
+              </span>
+              Detailed Intro
+            </Link>
+
+            {isAdmin && (
+              <Link 
+                to="/admin"
+                className="btn-ghost group border-red-500/20 hover:border-red-500/50"
+              >
+                <span className="w-11 h-11 rounded-full border border-red-500/40 flex items-center justify-center group-hover:bg-red-500/15 group-hover:border-red-500 transition-all duration-500">
+                  <Shield className="w-4 h-4 text-red-500" />
+                </span>
+                Admin Console
+              </Link>
+            )}
           </div>
         </div>
 

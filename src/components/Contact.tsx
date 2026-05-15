@@ -1,4 +1,5 @@
 import { Mail, Phone, MapPin, Instagram, Youtube, Linkedin, CalendarDays, Globe, Sparkles, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Contact = () => {
   return (
@@ -120,20 +121,18 @@ const Contact = () => {
               </div>
 
               <div className="pt-4 w-full max-w-md mx-auto">
-                <button 
-                  data-tally-open="9q6YJQ"
-                  data-tally-layout="modal"
-                  data-tally-width="700"
+                <Link 
+                  to="/booking"
                   className="relative w-full group overflow-hidden rounded-sm cursor-pointer block shadow-btn hover:shadow-glow transition-all duration-700 hover:-translate-y-1"
                 >
                   <div className="absolute inset-0 bg-gradient-gold" />
                   <div className="relative px-8 py-6 flex items-center justify-center gap-4 bg-obsidian m-[2px] rounded-[2px] transition-colors duration-500 group-hover:bg-transparent">
                     <span className="font-display font-bold text-2xl sm:text-3xl text-gradient-gold group-hover:text-primary-foreground tracking-wide transition-colors duration-500">
-                      Contact Us
+                      Book Now
                     </span>
                     <ArrowRight className="w-6 h-6 text-primary group-hover:text-primary-foreground transition-all duration-500 group-hover:translate-x-2" />
                   </div>
-                </button>
+                </Link>
               </div>
               
               <p className="text-[11px] text-muted-foreground tracking-wide font-medium">

@@ -1,6 +1,16 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import MenuToggle from "./MenuToggle";
-import { ArrowRight } from "lucide-react";
+import AuthWidget from "./AuthWidget";
+import { ArrowRight, PenLine, Shield } from "lucide-react";
+import { useUser } from "@clerk/clerk-react";
+import gaganPortrait from "@/assets/gagan-ganvir.jpg";
+
+const ADMIN_EMAILS = [
+  "masumganvir2006@gmail.com", 
+  "marathivloggerstudio@gmail.com", 
+  "masumganvir18@gmail.com"
+];
 
 const links = [
   { href: "#about", label: "About" },
@@ -17,6 +27,8 @@ interface NavigationProps {
 
 const Navigation = ({ menuOpen, onToggleMenu }: NavigationProps) => {
   const [scrolled, setScrolled] = useState(false);
+  const { user } = useUser();
+  const isAdmin = ADMIN_EMAILS.includes(user?.primaryEmailAddress?.emailAddress || "");
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
@@ -33,15 +45,11 @@ const Navigation = ({ menuOpen, onToggleMenu }: NavigationProps) => {
       }`}
     >
       <div className="container flex items-center justify-between gap-4">
-        {/* Left: menu + logo */}
         <div className="flex items-center gap-3 sm:gap-4">
           <MenuToggle open={menuOpen} onToggle={onToggleMenu} />
-
           <a href="#home" className="flex items-center gap-3 group">
-            <div className="relative w-11 h-11 sm:w-12 sm:h-12 bg-gradient-gold flex items-center justify-center shadow-gold group-hover:scale-105 transition-transform duration-500 rounded-sm"
-              style={{ clipPath: "polygon(8% 0%, 100% 0%, 92% 100%, 0% 100%)" }}
-            >
-              <span className="font-display font-black text-obsidian text-2xl sm:text-3xl leading-none">M</span>
+            <div className="relative w-11 h-11 sm:w-12 sm:h-12 bg-gradient-gold flex items-center justify-center shadow-gold group-hover:scale-105 transition-transform duration-500 rounded-full overflow-hidden p-[2px]">
+              <img src={gaganPortrait} alt="Gagan Ganvir" className="w-full h-full object-cover rounded-full" />
               <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-primary-glow rounded-full animate-pulse-gold" />
             </div>
             <div className="leading-tight">
@@ -49,13 +57,12 @@ const Navigation = ({ menuOpen, onToggleMenu }: NavigationProps) => {
                 MarathiVlogger
               </div>
               <div className="text-[9px] sm:text-[10px] tracking-luxury text-primary font-semibold">
-                STUDIO · GONDIA · MH
+                STUDIO · MV STUDIOS · MH
               </div>
             </div>
           </a>
         </div>
 
-        {/* Center nav links */}
         <nav className="hidden lg:flex items-center gap-9">
           {links.map((l) => (
             <a
@@ -69,19 +76,40 @@ const Navigation = ({ menuOpen, onToggleMenu }: NavigationProps) => {
           ))}
         </nav>
 
-        {/* CTA button */}
-        <button
-          data-tally-open="9q6YJQ"
-          data-tally-layout="modal"
-          data-tally-width="700"
-          className="hidden md:inline-flex items-center gap-2.5 text-[11px] uppercase tracking-luxury font-semibold border-[1.5px] border-primary/50 px-6 py-3 rounded-full hover:bg-primary hover:text-primary-foreground hover:shadow-btn hover:border-primary transition-all duration-500 group cursor-pointer"
-        >
-          Book a Shoot
-          <ArrowRight className="w-3.5 h-3.5 transition-transform duration-500 group-hover:translate-x-0.5" />
-        </button>
+        <div className="hidden md:flex items-center gap-3">
+          <AuthWidget />
+          {isAdmin && (
+            <Link
+              to="/admin"
+              className="inline-flex items-center gap-2 text-[11px] uppercase tracking-luxury font-semibold border-[1.5px] border-primary/50 px-4 py-3 rounded-full hover:bg-primary hover:text-black hover:border-primary transition-all duration-500 text-primary cursor-pointer"
+              title="Admin Console"
+            >
+              <Shield className="w-3.5 h-3.5" />
+              Admin
+            </Link>
+          )}
+          <Link
+            to="/review"
+            className="inline-flex items-center gap-2 text-[11px] uppercase tracking-luxury font-semibold border-[1.5px] border-primary/30 px-5 py-3 rounded-full hover:bg-primary/10 hover:border-primary/60 text-primary transition-all duration-500 group cursor-pointer"
+          >
+            <PenLine className="w-3.5 h-3.5" />
+            Add Review
+          </Link>
+          <button
+            data-tally-open="9q6YJQ"
+            data-tally-layout="modal"
+            data-tally-width="700"
+            className="inline-flex items-center gap-2.5 text-[11px] uppercase tracking-luxury font-semibold border-[1.5px] border-primary/50 px-6 py-3 rounded-full hover:bg-primary hover:text-primary-foreground hover:shadow-btn hover:border-primary transition-all duration-500 group cursor-pointer"
+          >
+            Book a Shoot
+            <ArrowRight className="w-3.5 h-3.5 transition-transform duration-500 group-hover:translate-x-0.5" />
+          </button>
+        </div>
       </div>
     </header>
   );
 };
 
 export default Navigation;
+
+

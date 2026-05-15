@@ -1,0 +1,32 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper function for admin check
+    function isAdmin() {
+      return request.auth != null && 
+        (request.auth.token.email == "masumganvir2006@gmail.com" || 
+         request.auth.token.email == "marathivloggerstudio@gmail.com" || 
+         request.auth.token.email == "masumganvir18@gmail.com");
+    }
+
+    // Public assets
+    match /public/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Media uploads
+    match /media/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin() 
+        && request.resource.size < 50 * 1024 * 1024 // 50MB limit
+        && request.resource.contentType.matches('image/.*|video/.*'); // Only images and videos
+    }
+
+    // Default
+    match /{allPaths=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

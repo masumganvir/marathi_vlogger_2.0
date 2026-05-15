@@ -1,14 +1,20 @@
 import { useEffect, useState } from "react";
-import { Camera, Film, Home, Mail, Sparkles, Star, User, Award, Instagram, Youtube, Linkedin, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Camera, Film, Home, Mail, Sparkles, Star, User, Award, Instagram, Youtube, Linkedin, ArrowRight, PenLine, Play } from "lucide-react";
+import AuthWidget from "./AuthWidget";
+import gaganPortrait from "@/assets/gagan-ganvir.jpg";
 
 const navItems = [
   { href: "#home", label: "Home", icon: Home, hint: "Cinematic intro" },
   { href: "#about", label: "About", icon: User, hint: "The artist behind the lens" },
   { href: "#services", label: "Services", icon: Camera, hint: "What we craft" },
+  { href: "/profile", label: "My Orders", icon: Film, hint: "View your bookings" },
+  { href: "/profile", label: "My Interest", icon: Sparkles, hint: "Saved inspirations" },
   { href: "#portfolio", label: "Portfolio", icon: Film, hint: "Selected works" },
   { href: "#stats", label: "Milestones", icon: Award, hint: "Numbers that speak" },
   { href: "#testimonials", label: "Stories", icon: Star, hint: "Words from clients" },
   { href: "#packages", label: "Packages", icon: Sparkles, hint: "Investment tiers" },
+  { href: "/introduction", label: "Intro", icon: Play, hint: "About my work" },
   { href: "#contact", label: "Contact", icon: Mail, hint: "Begin your story" },
 ];
 
@@ -51,6 +57,7 @@ const SideMenu = ({ open, onClose }: SideMenuProps) => {
   // Active section observer
   useEffect(() => {
     const sections = navItems
+      .filter((i) => i.href.startsWith("#")) // Only observe anchor links
       .map((i) => document.querySelector(i.href))
       .filter(Boolean) as Element[];
     if (!sections.length) return;
@@ -102,14 +109,14 @@ const SideMenu = ({ open, onClose }: SideMenuProps) => {
             }`}
             style={{ transitionDelay: open ? "200ms" : "0ms" }}
           >
-            <div className="w-13 h-13 bg-gradient-gold flex items-center justify-center shadow-gold rounded-sm"
-              style={{ width: 48, height: 48, clipPath: "polygon(8% 0%, 100% 0%, 92% 100%, 0% 100%)" }}
+            <div className="relative w-13 h-13 bg-gradient-gold flex items-center justify-center shadow-gold rounded-full overflow-hidden p-[2px]"
+              style={{ width: 48, height: 48 }}
             >
-              <span className="font-display font-black text-obsidian text-2xl">M</span>
+              <img src={gaganPortrait} alt="Gagan Portrait" className="w-full h-full object-cover rounded-full" />
             </div>
             <div className="leading-tight">
               <div className="font-display font-bold text-2xl tracking-wide">MarathiVlogger</div>
-              <div className="text-[10px] tracking-luxury text-primary font-semibold">STUDIO · GONDIA · MH</div>
+              <div className="text-[10px] tracking-luxury text-primary font-semibold">STUDIO · MV STUDIOS · MH</div>
             </div>
           </div>
 
@@ -131,45 +138,70 @@ const SideMenu = ({ open, onClose }: SideMenuProps) => {
               const Icon = item.icon;
               const isActive = activeHash === item.href;
               return (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  onClick={onClose}
-                  className={`group relative flex items-center gap-4 px-5 py-4 border border-transparent rounded-sm hover:border-primary/20 hover:bg-primary/5 transition-all duration-500 ${
-                    open ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10"
-                  } ${isActive ? "border-primary/30 bg-primary/10" : ""}`}
-                  style={{ transitionDelay: open ? `${350 + i * 60}ms` : "0ms" }}
-                >
-                  {/* Active rail */}
-                  <span
-                    className={`absolute left-0 top-1/2 -translate-y-1/2 w-[3px] bg-gradient-gold-subtle rounded-full transition-all duration-500 ${
-                      isActive ? "h-8" : "h-0 group-hover:h-6"
-                    }`}
-                  />
-                  {/* Icon */}
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 ${
-                    isActive
-                      ? "bg-primary/15 text-primary scale-105"
-                      : "bg-transparent text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary group-hover:scale-105"
-                  }`}>
-                    <Icon className="w-5 h-5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div
-                      className={`font-display text-xl tracking-wide transition-colors font-bold ${
-                        isActive ? "text-primary" : "text-foreground group-hover:text-primary"
+                item.href.startsWith("#") ? (
+                  <a
+                    key={`${item.href}-${item.label}`}
+                    href={item.href}
+                    onClick={onClose}
+                    className={`group relative flex items-center gap-4 px-5 py-4 border border-transparent rounded-sm hover:border-primary/20 hover:bg-primary/5 transition-all duration-500 ${
+                      open ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10"
+                    } ${isActive ? "border-primary/30 bg-primary/10" : ""}`}
+                    style={{ transitionDelay: open ? `${350 + i * 60}ms` : "0ms" }}
+                  >
+                    <span
+                      className={`absolute left-0 top-1/2 -translate-y-1/2 w-[3px] bg-gradient-gold-subtle rounded-full transition-all duration-500 ${
+                        isActive ? "h-8" : "h-0 group-hover:h-6"
                       }`}
-                    >
-                      {item.label}
+                    />
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 ${
+                      isActive
+                        ? "bg-primary/15 text-primary scale-105"
+                        : "bg-transparent text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary group-hover:scale-105"
+                    }`}>
+                      <Icon className="w-5 h-5" />
                     </div>
-                    <div className="text-[10px] uppercase tracking-luxury text-muted-foreground/60 mt-0.5 font-medium">
-                      {item.hint}
+                    <div className="flex-1 min-w-0">
+                      <div
+                        className={`font-display text-xl tracking-wide transition-colors font-bold ${
+                          isActive ? "text-primary" : "text-foreground group-hover:text-primary"
+                        }`}
+                      >
+                        {item.label}
+                      </div>
+                      <div className="text-[10px] uppercase tracking-luxury text-muted-foreground/60 mt-0.5 font-medium">
+                        {item.hint}
+                      </div>
                     </div>
-                  </div>
-                  <span className="text-xs text-primary/50 font-mono font-semibold">
-                    0{i + 1}
-                  </span>
-                </a>
+                    <span className="text-xs text-primary/50 font-mono font-semibold">
+                      0{i + 1}
+                    </span>
+                  </a>
+                ) : (
+                  <Link
+                    key={`${item.href}-${item.label}`}
+                    to={item.href}
+                    onClick={onClose}
+                    className={`group relative flex items-center gap-4 px-5 py-4 border border-transparent rounded-sm hover:border-primary/20 hover:bg-primary/5 transition-all duration-500 ${
+                      open ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10"
+                    }`}
+                    style={{ transitionDelay: open ? `${350 + i * 60}ms` : "0ms" }}
+                  >
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 bg-transparent text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary group-hover:scale-105`}>
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-display text-xl tracking-wide transition-colors font-bold text-foreground group-hover:text-primary">
+                        {item.label}
+                      </div>
+                      <div className="text-[10px] uppercase tracking-luxury text-muted-foreground/60 mt-0.5 font-medium">
+                        {item.hint}
+                      </div>
+                    </div>
+                    <span className="text-xs text-primary/50 font-mono font-semibold">
+                      0{i + 1}
+                    </span>
+                  </Link>
+                )
               );
             })}
           </nav>
@@ -181,16 +213,27 @@ const SideMenu = ({ open, onClose }: SideMenuProps) => {
             }`}
             style={{ transitionDelay: open ? "900ms" : "0ms" }}
           >
-            <a
-              href="https://airtable.com/apppjRZM2gWjM9L4v/pagLWhrzAHx6eDnF0/form"
-              target="_blank"
-              rel="noopener noreferrer"
+            {/* Auth — sign in or avatar */}
+            <div className="flex items-center justify-center gap-3 mb-5 p-4 border border-primary/15 rounded-sm bg-primary/5">
+              <AuthWidget />
+            </div>
+
+            <Link
+              to="/review"
+              onClick={onClose}
+              className="w-full flex items-center justify-center gap-2.5 px-5 py-4 border border-primary/30 rounded-sm text-primary text-[11px] uppercase tracking-luxury font-semibold hover:bg-primary/10 transition-all duration-300 group mb-4"
+            >
+              <PenLine className="w-4 h-4" />
+              Add Your Review
+            </Link>
+            <Link
+              to="/booking"
               onClick={onClose}
               className="btn-premium w-full flex items-center justify-center gap-3 group cursor-pointer inline-flex"
             >
               Book a Cinematic Shoot
               <ArrowRight className="w-4 h-4 transition-transform duration-500 group-hover:translate-x-1" />
-            </a>
+            </Link>
 
             {/* Socials */}
             <div className="flex items-center justify-center gap-4 mt-7">

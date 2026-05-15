@@ -1,4 +1,5 @@
 import { Instagram, Youtube, Linkedin, Mail, ArrowUpRight } from "lucide-react";
+import gaganPortrait from "@/assets/gagan-ganvir.jpg";
 
 const Footer = () => {
   return (
@@ -11,14 +12,14 @@ const Footer = () => {
           {/* Brand column */}
           <div className="md:col-span-5">
             <div className="flex items-center gap-3 mb-8">
-              <div className="w-13 h-13 bg-gradient-gold flex items-center justify-center shadow-gold rounded-sm"
-                style={{ width: 48, height: 48, clipPath: "polygon(8% 0%, 100% 0%, 92% 100%, 0% 100%)" }}
+              <div className="relative w-13 h-13 bg-gradient-gold flex items-center justify-center shadow-gold rounded-full overflow-hidden p-[2px]"
+                style={{ width: 48, height: 48 }}
               >
-                <span className="font-display font-black text-obsidian text-2xl">M</span>
+                <img src={gaganPortrait} alt="Gagan Ganvir" className="w-full h-full object-cover rounded-full" />
               </div>
               <div className="leading-tight">
                 <div className="font-display font-bold text-2xl tracking-wide">MarathiVlogger</div>
-                <div className="text-[10px] tracking-luxury text-primary font-semibold">STUDIO · GONDIA · MH</div>
+                <div className="text-[10px] tracking-luxury text-primary font-semibold">STUDIO · MV STUDIOS · MH</div>
               </div>
             </div>
             <p className="font-display italic text-3xl text-foreground/75 max-w-md leading-snug mb-3">
