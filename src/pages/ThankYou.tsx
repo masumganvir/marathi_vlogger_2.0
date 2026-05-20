@@ -55,7 +55,7 @@ const ThankYou = () => {
       event_date: date || "Not Provided",
       event_details: event_details || "Not Provided",
       expectations: expectations || "Not Provided",
-      admin_email: "marathivloggerstudios@gmail.com",
+      admin_email: "marathivloggerstudio@gmail.com",
     };
 
     // 4. Initialize EmailJS with your Public Key
