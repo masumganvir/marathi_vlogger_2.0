@@ -192,7 +192,7 @@ const Booking = () => {
 
       await logActivity("BOOKING_SUBMITTED", { packageId: bookingData.packageId });
       toast.success("Booking inquiry submitted! A confirmation email has been sent to you.");
-      navigate("/profile");
+      navigate("/thank-you");
     } catch (error) {
       console.error(error);
       toast.error("Failed to submit. Please check your connection.");

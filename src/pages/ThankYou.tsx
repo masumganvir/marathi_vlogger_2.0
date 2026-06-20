@@ -68,8 +68,8 @@ const ThankYou = () => {
     const sendEmails = async () => {
       try {
         await Promise.all([
-          emailjs.send(SERVICE_ID, TEMPLATE_ADMIN, templateParams),
-          emailjs.send(SERVICE_ID, TEMPLATE_USER, templateParams),
+          emailjs.send(SERVICE_ID, TEMPLATE_ADMIN, templateParams, { publicKey: PUBLIC_KEY }),
+          emailjs.send(SERVICE_ID, TEMPLATE_USER, templateParams, { publicKey: PUBLIC_KEY }),
         ]);
 
         // Clean up the URL to prevent refresh from re-triggering
@@ -129,7 +129,7 @@ const ThankYou = () => {
 
             <button
               onClick={() => navigate("/")}
-              className="mt-8 px-8 py-4 bg-primary text-primary-foreground font-semibold rounded-sm hover:shadow-btn transition-all duration-300"
+              className="mt-8 px-8 py-4 md:hidden bg-primary text-primary-foreground font-semibold rounded-sm hover:shadow-btn transition-all duration-300"
             >
               Return to Homepage
             </button>
