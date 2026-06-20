@@ -7,9 +7,7 @@ import { useUser } from "@clerk/clerk-react";
 import gaganPortrait from "@/assets/gagan-ganvir.jpg";
 
 const ADMIN_EMAILS = [
-  "masumganvir2006@gmail.com", 
-  "marathivloggerstudio@gmail.com", 
-  "masumganvir18@gmail.com"
+  "marathivloggerstudio@gmail.com"
 ];
 
 const links = [

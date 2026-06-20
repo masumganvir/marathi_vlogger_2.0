@@ -21,11 +21,9 @@ import {
   Briefcase, Youtube, Sparkles, Bot, Wand2, Database
 } from "lucide-react";
 
-// ─── ADMIN EMAILS ───────────────────────────────────────────────────────────
+// ─── ADMIN EMAIL (Single owner — DO NOT add more) ───────────────────────────
 const ADMIN_EMAILS = [
-  "masumganvir2006@gmail.com", 
-  "marathivloggerstudio@gmail.com", 
-  "masumganvir18@gmail.com"
+  "marathivloggerstudio@gmail.com",
 ];
 
 // ─── TYPES ───────────────────────────────────────────────────────────────────

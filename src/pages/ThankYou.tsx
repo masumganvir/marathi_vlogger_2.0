@@ -48,6 +48,9 @@ const ThankYou = () => {
     const templateParams = {
       user_name: name,
       user_email: email,
+      email: email,
+      to_email: email,
+      reply_to: email,
       user_phone: phone || "Not Provided",
       budget: budget || "Not Provided",
       event_type: event_type || "Not Provided",

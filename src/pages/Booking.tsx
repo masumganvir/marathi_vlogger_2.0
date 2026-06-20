@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useClerkFirebaseSync } from "@/hooks/useClerkFirebaseSync";
+import { useSecurity } from "@/hooks/useSecurity";
 import { Link, useNavigate } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
 import { db } from "@/lib/firebase";
@@ -24,8 +25,15 @@ import {
   FileText
 } from "lucide-react";
 import { toast } from "sonner";
+import emailjs from "@emailjs/browser";
+
+const SERVICE_ID = "service_2mn7ay9";
+const TEMPLATE_USER = "template_7h27vhv";
+const TEMPLATE_ADMIN = "template_pfthjao";
+const PUBLIC_KEY = "hMikfIKXEVIBIESMP";
 
 const packages = [
+  { id: "starter", name: "Starter / Short Video Shoots", price: "Custom Price", description: "Customized for short shoots, reels, and mini projects. Price decided by admin." },
   { id: "basic", name: "Basic", price: "₹15,000", description: "Short-form coverage & social reels" },
   { id: "essence", name: "Essence", price: "₹85,000", description: "6 hours of coverage, 1 cinematographer" },
   { id: "signature", name: "Signature", price: "₹2,25,000", description: "Full day, 2 cinematographers, Drone" },
@@ -45,6 +53,7 @@ import { TechBackground } from "@/components/TechBackground";
 const Booking = () => {
   useClerkFirebaseSync();
   const { user, isSignedIn } = useUser();
+  const { assertOwnership, logActivity } = useSecurity();
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -103,10 +112,23 @@ const Booking = () => {
   }, []);
 
   const handleNext = () => {
-    if (step === 2 && !isSignedIn) {
-      setShowAuth(true);
-      toast.info("Please sign in to save your booking details.");
-      return;
+    if (step === 2) {
+      if (!isSignedIn) {
+        setShowAuth(true);
+        toast.info("Please sign in to save your booking details.");
+        return;
+      }
+
+      if (bookingData.eventDate) {
+        const selectedDate = new Date(bookingData.eventDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (selectedDate < today) {
+          toast.error("Please enter a correct and valid future date.");
+          return;
+        }
+      }
     }
     setStep(s => Math.min(s + 1, 4));
   };
@@ -114,20 +136,62 @@ const Booking = () => {
   const handleBack = () => setStep(s => Math.max(s - 1, 1));
 
   const handleSubmit = async () => {
-    if (!isSignedIn) {
+    if (!isSignedIn || !user) {
       setShowAuth(true);
+      return;
+    }
+    // Verify the session is still valid and belongs to the current user
+    const owned = await assertOwnership(user.id, "Booking submit");
+    if (!owned) {
+      toast.error("Security validation failed. Please sign in again.");
       return;
     }
     setLoading(true);
     try {
       await addDoc(collection(db, "orders"), {
+        // userId is ALWAYS taken from the Clerk session — never from form input
         userId: user.id,
-        ...bookingData,
+        userEmail: user.primaryEmailAddress?.emailAddress ?? "",
+        packageId: bookingData.packageId,
+        eventDate: bookingData.eventDate,
+        location: bookingData.location,
+        phone: bookingData.phone,
+        notes: bookingData.notes,
         status: "Processing",
         type: "Direct Booking",
         createdAt: serverTimestamp(),
       });
-      toast.success("Booking inquiry submitted! Our team is reviewing your dates.");
+
+      // Send automated emails via EmailJS
+      const templateParams = {
+        user_name: bookingData.name || "Client",
+        user_email: user.primaryEmailAddress?.emailAddress || "",
+        email: user.primaryEmailAddress?.emailAddress || "",
+        to_email: user.primaryEmailAddress?.emailAddress || "",
+        reply_to: user.primaryEmailAddress?.emailAddress || "",
+        user_phone: bookingData.phone || "Not Provided",
+        budget: bookingData.packageId,
+        event_type: "Direct Booking",
+        destination: bookingData.location || "Not Provided",
+        event_date: bookingData.eventDate || "Not Provided",
+        event_details: bookingData.notes || "No additional notes",
+        expectations: "N/A",
+        admin_email: "marathivloggerstudio@gmail.com",
+      };
+
+      try {
+        await Promise.all([
+          emailjs.send(SERVICE_ID, TEMPLATE_ADMIN, templateParams, { publicKey: PUBLIC_KEY }),
+          emailjs.send(SERVICE_ID, TEMPLATE_USER, templateParams, { publicKey: PUBLIC_KEY }),
+        ]);
+        console.log("Automated emails sent successfully.");
+      } catch (emailErr) {
+        console.error("EmailJS Error:", emailErr);
+        // We don't block the booking success if email fails, but we log it.
+      }
+
+      await logActivity("BOOKING_SUBMITTED", { packageId: bookingData.packageId });
+      toast.success("Booking inquiry submitted! A confirmation email has been sent to you.");
       navigate("/profile");
     } catch (error) {
       console.error(error);
@@ -212,7 +276,7 @@ const Booking = () => {
                 <div className="grid sm:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Event Date</label>
-                    <input type="date" value={bookingData.eventDate} onChange={(e) => setBookingData({...bookingData, eventDate: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-sm px-4 py-4 text-sm focus:border-primary/60 focus:outline-none transition-all" />
+                    <input type="date" min={new Date().toISOString().split("T")[0]} value={bookingData.eventDate} onChange={(e) => setBookingData({...bookingData, eventDate: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-sm px-4 py-4 text-sm focus:border-primary/60 focus:outline-none transition-all" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Event Location</label>

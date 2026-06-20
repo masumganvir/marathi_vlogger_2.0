@@ -3,10 +3,9 @@ import { Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ShieldAlert, Loader2 } from "lucide-react";
 
+/** Single owner — only this email can access /admin */
 const ADMIN_EMAILS = [
-  "masumganvir2006@gmail.com",
   "marathivloggerstudio@gmail.com",
-  "masumganvir18@gmail.com"
 ];
 
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {

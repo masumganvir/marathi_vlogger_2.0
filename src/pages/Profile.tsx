@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { useUser, SignedIn, SignedOut } from "@clerk/clerk-react";
+import { useUser } from "@clerk/clerk-react";
 import { doc, getDoc, updateDoc, serverTimestamp, collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useClerkFirebaseSync } from "@/hooks/useClerkFirebaseSync";
+import { useSecurity } from "@/hooks/useSecurity";
 import { Link } from "react-router-dom";
-import AuthModal from "@/components/AuthModal";
 import { BackButton } from "@/components/BackButton";
 import { TechBackground } from "@/components/TechBackground";
 import { toast } from "sonner";
@@ -14,9 +14,7 @@ import {
   Phone,
   Calendar,
   Shield,
-  ArrowLeft,
   Loader2,
-  LogIn,
   MapPin,
   FileText,
   Save,
@@ -44,6 +42,7 @@ interface FirestoreUserData {
 
 interface Order {
   id: string;
+  userId: string;   // always matches the authenticated user's Clerk UID
   service: string;
   status: string;
   date: string;
@@ -99,6 +98,7 @@ const formatDate = (ts: { seconds: number } | null | undefined) => {
 const UserProfileContent = () => {
   useClerkFirebaseSync();
   const { user } = useUser();
+  const { assertOwnership, logActivity } = useSecurity();
   const [data, setData] = useState<FirestoreUserData | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -117,10 +117,23 @@ const UserProfileContent = () => {
     if (!user) return;
     const fetchData = async () => {
       try {
-        // Fetch User
+        // ── Ownership-verified user document fetch ────────────────────────
+        // We always use user.id as the document key — never a URL param.
         const userSnap = await getDoc(doc(db, "users", user.id));
         if (userSnap.exists()) {
           const uData = userSnap.data() as FirestoreUserData;
+
+          // Double-check: the stored clerkId must match the current user
+          const owned = await assertOwnership(
+            uData.clerkId ?? user.id,
+            "Profile data fetch"
+          );
+          if (!owned) {
+            // Ownership mismatch — abort silently (flagSuspicious already called)
+            setLoading(false);
+            return;
+          }
+
           setData(uData);
           setEditForm({
             bio: uData.bio || "",
@@ -129,14 +142,17 @@ const UserProfileContent = () => {
           });
         }
 
-        // Fetch Orders (Mocking or real if collection exists)
-        const ordersQuery = query(collection(db, "orders"), where("userId", "==", user.id));
+        // ── Orders: strictly filter by the current user's UID ─────────────
+        // Even if the server rule allows it, we enforce it client-side too.
+        const ordersQuery = query(
+          collection(db, "orders"),
+          where("userId", "==", user.id)   // Always the current user — never from URL
+        );
         const ordersSnap = await getDocs(ordersQuery);
-        const ordersList = ordersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
-        setOrders(ordersList.length > 0 ? ordersList : [
-          { id: "mock-1", service: "Wedding Cinematography", status: "Completed", date: "24 Dec 2024", amount: "₹85,000" },
-          { id: "mock-2", service: "Pre-Wedding Film", status: "Processing", date: "12 Feb 2025", amount: "₹45,000" }
-        ]);
+        const ordersList = ordersSnap.docs
+          .map(d => ({ id: d.id, ...d.data() } as Order))
+          .filter(o => o.userId === user.id);  // Belt-and-suspenders client filter
+        setOrders(ordersList);
       } catch (e) {
         console.error(e);
       } finally {
@@ -144,10 +160,17 @@ const UserProfileContent = () => {
       }
     };
     fetchData();
+    logActivity("PROFILE_VIEW");
   }, [user]);
 
   const handleSave = async () => {
     if (!user) return;
+    // Re-assert ownership before any write
+    const owned = await assertOwnership(user.id, "Profile save");
+    if (!owned) {
+      toast.error("Security check failed. Please sign in again.");
+      return;
+    }
     setSaving(true);
     try {
       await updateDoc(doc(db, "users", user.id), {
@@ -159,6 +182,7 @@ const UserProfileContent = () => {
       setData((prev) => prev ? { ...prev, bio: editForm.bio, location: editForm.location, phoneNumbers: [editForm.phone] } : null);
       setIsEditing(false);
       toast.success("Profile updated successfully!");
+      await logActivity("PROFILE_UPDATE", { fields: ["bio", "location", "phone"] });
     } catch (e) {
       toast.error("Failed to update profile.");
     } finally {
@@ -376,8 +400,6 @@ const UserProfileContent = () => {
 
 
 const Profile = () => {
-  const [showModal, setShowModal] = useState(false);
-
   return (
     <div className="min-h-screen bg-black relative overflow-hidden">
       <TechBackground />
@@ -389,31 +411,8 @@ const Profile = () => {
       <div className="fixed bottom-0 left-0 w-[500px] h-[500px] bg-primary/5 blur-[100px] rounded-full pointer-events-none" />
 
       <div className="relative z-10 container py-20 px-6">
-
-        <SignedIn>
-          <UserProfileContent />
-        </SignedIn>
-
-        <SignedOut>
-          <div className="flex flex-col items-center justify-center py-32 text-center max-w-md mx-auto">
-            <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-8 border border-primary/20 shadow-glow">
-              <LogIn className="w-8 h-8 text-primary" />
-            </div>
-            <h1 className="font-display text-4xl font-bold text-white mb-4">Portal Locked</h1>
-            <p className="text-zinc-400 text-lg mb-10 leading-relaxed">
-              Please sign in to access your personal cinematography vault and account settings.
-            </p>
-            <button
-              onClick={() => setShowModal(true)}
-              className="w-full flex items-center justify-center gap-3 px-8 py-5 bg-gradient-gold text-obsidian font-bold text-[11px] uppercase tracking-luxury rounded-sm hover:shadow-gold transition-all duration-300 group"
-            >
-              <LogIn className="w-4 h-4" />
-              Sign In to Member Portal
-            </button>
-
-            {showModal && <AuthModal onClose={() => setShowModal(false)} />}
-          </div>
-        </SignedOut>
+        {/* ProtectedRoute guarantees the user is signed in before we reach here */}
+        <UserProfileContent />
       </div>
     </div>
   );

@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUser, SignedIn, SignedOut } from "@clerk/clerk-react";
+import { useUser } from "@clerk/clerk-react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Star, ArrowRight, CheckCircle2, Camera, Sparkles, LogIn, User } from "lucide-react";
+import { useSecurity } from "@/hooks/useSecurity";
+import { Star, ArrowRight, CheckCircle2, Camera, Sparkles, User } from "lucide-react";
 import { toast } from "sonner";
 import AuthModal from "@/components/AuthModal";
 
@@ -23,6 +24,7 @@ import { TechBackground } from "@/components/TechBackground";
 const Review = () => {
   const navigate = useNavigate();
   const { user, isSignedIn } = useUser();
+  const { assertOwnership, logActivity } = useSecurity();
   const [rating, setRating] = useState(0);
   const [hovered, setHovered] = useState(0);
   const [submitted, setSubmitted] = useState(false);
@@ -57,7 +59,7 @@ const Review = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!isSignedIn) {
+    if (!isSignedIn || !user) {
       setShowAuthModal(true);
       return;
     }
@@ -71,22 +73,30 @@ const Review = () => {
       return;
     }
 
+    // Verify session ownership before writing
+    const owned = await assertOwnership(user.id, "Review submit");
+    if (!owned) {
+      toast.error("Security validation failed. Please sign in again.");
+      return;
+    }
+
     setLoading(true);
 
     try {
       await addDoc(collection(db, "reviews"), {
-        userId: user?.id || "guest",
+        // userId is ALWAYS from the Clerk session — never from form input
+        userId: user.id,
         name: form.name,
-        email: form.email || "",
-        imageUrl: user?.imageUrl || "", // Added user image
+        email: user.primaryEmailAddress?.emailAddress || "",
+        imageUrl: user.imageUrl || "",
         location: form.location || form.service,
         service: form.service,
         review: form.review,
         rating,
-        approved: true, // Auto-approve so it shows immediately
+        approved: true,
         createdAt: serverTimestamp(),
       });
-
+      await logActivity("REVIEW_SUBMITTED", { service: form.service, rating });
       setSubmitted(true);
     } catch (error: any) {
       console.error("Firebase write error:", error);

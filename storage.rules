@@ -5,9 +5,7 @@ service firebase.storage {
     // Helper function for admin check
     function isAdmin() {
       return request.auth != null && 
-        (request.auth.token.email == "masumganvir2006@gmail.com" || 
-         request.auth.token.email == "marathivloggerstudio@gmail.com" || 
-         request.auth.token.email == "masumganvir18@gmail.com");
+        (request.auth.token.email == "marathivloggerstudio@gmail.com");
     }
 
     // Public assets

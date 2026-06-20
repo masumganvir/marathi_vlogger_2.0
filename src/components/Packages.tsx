@@ -32,6 +32,22 @@ const tiers: Tier[] = [
     accentColor: "#D4AF37",
   },
   {
+    name: "Mini Shoots",
+    tagline: "Customized for various small shoots",
+    price: "Variable",
+    suffix: "based on requirements",
+    features: [
+      "Pre-weddings & small events",
+      "Portraits & portfolio shoots",
+      "Flexible coverage hours",
+      "Budget-friendly custom pricing",
+      "Tailored photo & video delivery",
+      "Quick turnaround options",
+    ],
+    featured: false,
+    accentColor: "#E8B4B8",
+  },
+  {
     name: "Essence",
     tagline: "Intimate moments, beautifully filmed",
     price: "₹85,000",
@@ -113,7 +129,7 @@ const Packages = () => {
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6 lg:gap-8 items-stretch">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 items-stretch justify-center">
           {tiers.map((t, idx) => (
             <motion.div
               key={t.name}
